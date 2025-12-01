@@ -1,24 +1,69 @@
 <?php
-namespace App\Http\Controllers;
-use App\Models\Product; use App\Models\Category;
-use Illuminate\Http\Request; use Illuminate\Support\Facades\Storage;
 
-class ProductController extends Controller {
-    public function index(){ $products = Product::with('category')->paginate(10); return view('products.index',compact('products')); }
-    public function create(){ $categories = Category::all(); return view('products.create',compact('categories')); }
-    public function store(Request $r){
-        $data = $r->validate(['sku'=>'nullable|unique:products','name'=>'required','category_id'=>'nullable','description'=>'nullable','price'=>'required|numeric','stock'=>'required|integer','image'=>'nullable|image|max:2048']);
-        if($r->hasFile('image')) $data['image']=$r->file('image')->store('products','public');
-        Product::create($data);
-        return redirect()->route('products.index')->with('success','Producto creado');
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use Illuminate\Http\Request;
+
+class ProductController extends Controller
+{
+    public function index()
+    {
+        // Cargar también la categoría para evitar muchas consultas
+        $products = Product::with('category')->orderBy('id', 'DESC')->paginate(10);
+        return view('products.index', compact('products'));
     }
-    public function show(Product $product){ return view('products.show',compact('product')); }
-    public function edit(Product $product){ $categories = Category::all(); return view('products.edit',compact('product','categories')); }
-    public function update(Request $r, Product $product){
-        $data = $r->validate(['sku'=>'nullable|unique:products,sku,'.$product->id,'name'=>'required','category_id'=>'nullable','description'=>'nullable','price'=>'required|numeric','stock'=>'required|integer','image'=>'nullable|image|max:2048']);
-        if($r->hasFile('image')){ if($product->image) Storage::disk('public')->delete($product->image); $data['image']=$r->file('image')->store('products','public'); }
-        $product->update($data);
-        return redirect()->route('products.index')->with('success','Producto actualizado');
+
+    public function create()
+    {
+        return view('products.create');
     }
-    public function destroy(Product $product){ if($product->image) Storage::disk('public')->delete($product->image); $product->delete(); return redirect()->route('products.index')->with('success','Eliminado'); }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name'        => 'required|min:3',
+            'price'       => 'required|numeric|min:0',
+            'stock'       => 'required|integer|min:0',
+            'category_id' => 'nullable|exists:categories,id'
+        ]);
+
+        Product::create($request->all());
+
+        return redirect()->route('products.index')
+            ->with('success', 'Producto creado correctamente.');
+    }
+
+    public function show(Product $product)
+    {
+        return view('products.show', compact('product'));
+    }
+
+    public function edit(Product $product)
+    {
+        return view('products.edit', compact('product'));
+    }
+
+    public function update(Request $request, Product $product)
+    {
+        $request->validate([
+            'name'        => 'required|min:3',
+            'price'       => 'required|numeric|min:0',
+            'stock'       => 'required|integer|min:0',
+            'category_id' => 'nullable|exists:categories,id'
+        ]);
+
+        $product->update($request->all());
+
+        return redirect()->route('products.index')
+            ->with('success', 'Producto actualizado correctamente.');
+    }
+
+    public function destroy(Product $product)
+    {
+        $product->delete();
+
+        return redirect()->route('products.index')
+            ->with('success', 'Producto eliminado correctamente.');
+    }
 }

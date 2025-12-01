@@ -9,6 +9,8 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InventoryController;
 
+Route::resource('categories', CategoryController::class);
+Route::resource('products', ProductController::class);
 Route::get('/', function(){ return redirect()->route('dashboard'); });
 
 Route::get('/dashboard', function(){
