@@ -6,79 +6,51 @@ use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        //
+        $customers = Customer::paginate(10);
+        return view('customers.index', compact('customers'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
-        //
+        return view('customers.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'name'=>'required',
+            'email'=>'nullable|email|unique:customers',
+            'phone'=>'nullable',
+            'address'=>'nullable'
+        ]);
+
+        Customer::create($data);
+        return redirect()->route('customers.index')->with('success','Cliente creado!');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    public function edit(Customer $customer)
     {
-        //
+        return view('customers.edit', compact('customer'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
+    public function update(Request $request, Customer $customer)
     {
-        //
+        $data = $request->validate([
+            'name'=>'required',
+            'email'=>'nullable|email|unique:customers,email,'.$customer->id,
+            'phone'=>'nullable',
+            'address'=>'nullable'
+        ]);
+
+        $customer->update($data);
+        return redirect()->route('customers.index')->with('success','Cliente actualizado');
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public function destroy(Customer $customer)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        $customer->delete();
+        return back()->with('success','Cliente eliminado');
     }
 }

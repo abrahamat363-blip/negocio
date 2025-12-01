@@ -6,79 +6,56 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        //
+        $orders = Order::with('customer')->paginate(10);
+        return view('orders.index', compact('orders'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
-        //
+        return view('orders.create', [
+            'customers' => Customer::all(),
+            'products' => Product::all()
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'customer_id'=>'required',
+            'items'=>'required|array'
+        ]);
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
+        $order = Order::create([
+            'customer_id' => $request->customer_id,
+            'user_id' => auth()->id(),
+            'total' => 0,
+            'status' => 'pending'
+        ]);
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
+        $total = 0;
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+        foreach ($request->items as $item) {
+            $product = Product::find($item['product_id']);
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+            $subtotal = $product->price * $item['quantity'];
+            $total += $subtotal;
+
+            OrderItem::create([
+                'order_id'=>$order->id,
+                'product_id'=>$product->id,
+                'quantity'=>$item['quantity'],
+                'unit_price'=>$product->price,
+                'subtotal'=>$subtotal
+            ]);
+
+            // Restar stock
+            $product->decrement('stock', $item['quantity']);
+        }
+
+        $order->update(['total' => $total]);
+
+        return redirect()->route('orders.index')->with('success','Orden creada!');
     }
 }

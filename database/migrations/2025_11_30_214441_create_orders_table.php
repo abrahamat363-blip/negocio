@@ -12,12 +12,17 @@ class CreateOrdersTable extends Migration
      * @return void
      */
     public function up()
-    {
-        Schema::create('orders', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+{
+    Schema::create('orders', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('customer_id')->constrained()->onDelete('cascade');
+        $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        $table->decimal('total', 12, 2)->default(0);
+        $table->string('status')->default('pending');
+        $table->timestamps();
+    });
+}
+
 
     /**
      * Reverse the migrations.

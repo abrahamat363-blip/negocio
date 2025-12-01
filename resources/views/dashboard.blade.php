@@ -1,17 +1,9 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 bg-white border-b border-gray-200">
-                    You're logged in!
-                </div>
-            </div>
-        </div>
-    </div>
-</x-app-layout>
+@extends('layouts.app')
+@section('content')
+<div class="row">
+  <div class="col-md-3"><div class="card p-3"><h5>Negocios</h5><h2>{{ $businessCount }}</h2></div></div>
+  <div class="col-md-3"><div class="card p-3"><h5>Productos</h5><h2>{{ $productCount }}</h2></div></div>
+  <div class="col-md-3"><div class="card p-3"><h5>Clientes</h5><h2>{{ $clientCount }}</h2></div></div>
+  <div class="col-md-3"><div class="card p-3"><h5>Ventas</h5><h2>{{ $saleCount }}</h2></div></div>
+</div>
+@endsection
